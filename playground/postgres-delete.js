@@ -12,10 +12,11 @@ var tableParameters = {
 };
 
 
-// db.result('DELETE FROM $1~ WHERE todo = $2 RETURNING *', ["todos", "Something to do"], r=>r.rows).then((data) => {
-//     console.log(JSON.stringify(data, undefined,2));
-//     pgp.end();
-// }).catch((e) => {
-//     console.log(e);
-//     pgp.end();
-// });
+db.result('DELETE FROM $1~ WHERE todo = $2 RETURNING *', ["todos", "Something to do"], r=>r.rows).then((data) => {
+    console.log(JSON.stringify(data, undefined,2));
+    pgp.end();
+}).catch((e) => {
+    console.log(e);
+    pgp.end();
+});
+
