@@ -1,0 +1,1 @@
+INSERT INTO ${tableName~}(${columnOneName~}, ${columnTwoName~}) VALUES(${thingToDo}, ${completed}) RETURNING *

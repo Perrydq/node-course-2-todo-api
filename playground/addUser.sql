@@ -1,0 +1,1 @@
+INSERT INTO ${tableName~}(${columnOneName~}, ${columnTwoName~}, ${columnThreeName~}) VALUES(${name}, ${age}, ${location}) RETURNING *
