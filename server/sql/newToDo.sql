@@ -1,0 +1,1 @@
+INSERT INTO "ToDo" (todo) VALUES (${todoText}) RETURNING *

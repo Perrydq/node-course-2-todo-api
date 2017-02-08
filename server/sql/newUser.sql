@@ -1,0 +1,1 @@
+INSERT INTO "Users" (email) VALUES (${email}) RETURNING *
