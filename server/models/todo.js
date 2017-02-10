@@ -22,8 +22,38 @@ const newToDo = (todo) => {
         reject(e) 
     });
 });
-}
+};
+
+const getAllToDos = () => {
+    return new Promise((resolve, reject) => {
+        db.manyOrNone(sql.getAllToDos)
+        .then(data => {
+            pgp.end();
+            resolve(data); //array of ToDo objects
+        })
+        .catch(err => {
+            pgp.end();
+            reject(err);
+        });
+    });
+};
+
+const deleteToDos = () => {
+    return new Promise((resolve, reject) => {
+        db.none(sql.deleteToDos)
+        .then(() => {
+            pgp.end();
+            resolve('ToDos Deleted');
+        })
+        .catch((e) => {
+            pgp.end();
+            reject(e);
+        });
+    });
+};
 
 module.exports = {
-    newToDo
+    newToDo,
+    getAllToDos,
+    deleteToDos
 }

@@ -18,6 +18,8 @@ function sql(file) {
 
 module.exports.createToDoTable = sql('./createToDoTable.sql');
 module.exports.newToDo = sql('./newToDo.sql');
+module.exports.getAllToDos = sql('./getAllToDos.sql');
+module.exports.deleteToDos = sql('./deleteToDos.sql');
 
 module.exports.createUsersTable = sql('./createUserTable.sql');
 module.exports.newUser = sql('./newUser.sql');
