@@ -22,8 +22,8 @@ app.post('/todos', (req, res) => {
 
 app.get('/todos', (req, res) => {
     toDo.getAllToDos()
-    .then(data => {
-        res.status(200).send(data);
+    .then(todos => {
+        res.status(200).send({todos});
     })
     .catch(e => {
         res.status(400).send(e);
@@ -31,16 +31,31 @@ app.get('/todos', (req, res) => {
 });
 
 // GET /todos/:id
-
-app.get('/deleteToDos', (req, res) => {
-    toDo.deleteToDos()
-    .then(message => {
-        res.status(200).send(message);
-    })
-    .catch(e => {
-        res.status(400).send(e);
-    });
+app.get('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    if(Number.isInteger(+id)){
+        toDo.getToDoById(id)
+        .then((todo) => {
+            res.status(200).send(todo);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(400).send();
+        });
+    } else {
+        res.status(404).send('Invalid ID');
+    };
 });
+
+// app.get('/deleteToDos', (req, res) => {
+//     toDo.deleteToDos()
+//     .then(message => {
+//         res.status(200).send(message);
+//     })
+//     .catch(e => {
+//         res.status(400).send(e);
+//     });
+// });
 
 app.listen(3000, () => {
     console.log('Started on port 3000');

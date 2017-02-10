@@ -24,12 +24,40 @@ const newToDo = (todo) => {
 });
 };
 
+const insertArrayofToDo = (todos) => {
+    return new Promise((resolve,reject) => {
+        db.tx((t) => {
+            let batch = [];
+            todos.forEach((todo) => {
+                batch.push(t.query(sql.newToDo, {todoText: todo.todo}))
+            });
+            return t.batch(batch);
+        }).then((data => {
+            pgp.end();
+            let newtodos = [];
+            data[1].forEach(todo => {
+                newtodos.push({
+                    id: todo.id,
+                    todo: todo.todo,
+                    completed: todo.completed,
+                    completedat: todo.completedat
+                });
+            });
+            resolve({newtodos});
+        }))
+        .catch(e => {
+            pgp.end();
+            reject(e);
+        });
+    });
+}
+
 const getAllToDos = () => {
     return new Promise((resolve, reject) => {
         db.manyOrNone(sql.getAllToDos)
-        .then(data => {
+        .then(todos => {
             pgp.end();
-            resolve(data); //array of ToDo objects
+            resolve(todos); //array of ToDo objects
         })
         .catch(err => {
             pgp.end();
@@ -37,6 +65,21 @@ const getAllToDos = () => {
         });
     });
 };
+
+const getToDoById = (toDoId) => {
+    return new Promise((resolve, reject) => {
+        db.oneOrNone(sql.getToDoById, {toDoId})
+        .then(todo => {
+            pgp.end();
+            resolve(todo);
+        })
+        .catch(err => {
+            pgp.end();
+            reject(err);
+        });
+    });
+};
+
 
 const deleteToDos = () => {
     return new Promise((resolve, reject) => {
@@ -55,5 +98,7 @@ const deleteToDos = () => {
 module.exports = {
     newToDo,
     getAllToDos,
-    deleteToDos
+    getToDoById,
+    deleteToDos,
+    insertArrayofToDo
 }

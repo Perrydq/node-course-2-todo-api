@@ -4,13 +4,22 @@ const request = require('supertest');
 const {app} = require('./../server/server.js');
 const toDo = require('./../server/models/todo.js');
 
-beforeEach((done) => {
-    toDo.deleteToDos()
-    .then(() => done())
-    .catch(e => console.log(e));
-});
+const todos = [
+    {todo: 'first test todo'},
+    {todo: 'second test todo'}
+];
+
+
 
 describe('POST /todos', () => {
+    beforeEach((done) => {
+        toDo.deleteToDos()
+        .then(() => {
+            toDo.insertArrayofToDo(todos);
+        })
+        .then(() => done())
+        .catch(e => done(e));
+    });
     it('should create a new todo', (done)=>{
         const text = 'Test todo text';
 
@@ -23,15 +32,14 @@ describe('POST /todos', () => {
             })
             .end((err, res) => {
                 if(err){
-                   return done(err);
+                return done(err);
                 }
                 toDo.getAllToDos().then((todos) => {
-                    expect(todos.length).toBe(1);
-                    expect(todos[0].todo).toBe(text);
+                    expect(todos.length).toBe(3);
+                    expect(todos[todos.length-1].todo).toBe(text);
                     done();
                 }).catch(e => done(e));
             });
-
     });
 
     it('should not create todo with invalid body data', (done) => {
@@ -44,10 +52,21 @@ describe('POST /todos', () => {
                     return done(err);
                 }
                 toDo.getAllToDos().then((todos) => {
-                    expect(todos.length).toBe(0);
+                    expect(todos.length).toBe(2);
                     done();
                 }).catch(e => done(e));
-            })
-    })
+            });
+    });
 });
-
+describe('GET /todos', () => {
+    it('should get all todos', (done)=> {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todos.length).toBe(2);
+            })
+            .end(done);
+    });
+});
+    
