@@ -68,5 +68,30 @@ describe('GET /todos', () => {
             })
             .end(done);
     });
+    it()
 });
-    
+    //doesn't work as I use serial ID's not insertable objectID's via mongoDB
+describe('GET /todos/:id', () => {
+    it('should return todo object', (done) => {
+        request(app)
+        .get(`/todos/${todos[0].id}`)
+        .expect(200)
+        .expect((res)=> {
+            expect(res.body.todo.todo).toBe(todos[0].todo);
+        }).end(done);
+    });
+
+    it('should return a 404 if todo not found', (done)=> {
+        requeset(app)
+        .get(`/todos/478923674806723`)
+        .expect(404)
+        .end(done);
+    });
+
+    it('should return a 404 for non-valid IDs', (done) => {
+        request(app)
+        .get(`/todos/jfds98jfdsa`)
+        .expect(404)
+        .end(done);
+    })
+});
