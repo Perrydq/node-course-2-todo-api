@@ -45,11 +45,32 @@ app.get('/todos/:id', (req, res) => {
         });
     } else {
         res.status(404).send('Invalid ID');
-    };
+    }
 });
 
-// app.get('/deleteToDos', (req, res) => {
-//     toDo.deleteToDos()
+app.delete('/todos/:id', (req, res) => {
+    //get id/
+    const id = req.params.id;
+    //validata id if not valid return 404
+    if(Number.isInteger(+id)){
+        //remove todo by ID
+        //success
+            //if no response data 404
+            //if response print todo
+        toDo.deleteToDo(id)
+        .then((todo) => {
+            todo ? res.status(200).send(todo) : res.status(404).send('no todo to delete');
+        })
+        .catch((e) => {
+            res.status(400).send();
+        });
+    } else {
+        res.status(404).send('Invalid ID');
+    }
+});
+
+// app.get('/deleteAllToDos', (req, res) => {
+//     toDo.deleteAllToDos()
 //     .then(message => {
 //         res.status(200).send(message);
 //     })

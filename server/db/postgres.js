@@ -1,6 +1,6 @@
 const pgp = require('pg-promise')();
 
-const connection = require('./dbconnection');
+const {connection} = require('./dbconnection');
 const db = pgp(connection);
 
 module.exports = {

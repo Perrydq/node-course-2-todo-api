@@ -80,8 +80,7 @@ const getToDoById = (toDoId) => {
     });
 };
 
-
-const deleteToDos = () => {
+const deleteAllToDos = () => {
     return new Promise((resolve, reject) => {
         db.none(sql.deleteToDos)
         .then(() => {
@@ -95,10 +94,25 @@ const deleteToDos = () => {
     });
 };
 
+const deleteToDo = (toDoId) => {
+    return new Promise((resolve, reject) => {
+        db.oneOrNone(sql.deleteToDo, {toDoId})
+        .then((data) => {
+            pgp.end();
+            resolve(data);
+        })
+        .catch((e) => {
+            pgp.end();
+            reject(e);
+        });
+    });
+}
+
 module.exports = {
     newToDo,
     getAllToDos,
     getToDoById,
-    deleteToDos,
-    insertArrayofToDo
+    deleteAllToDos,
+    insertArrayofToDo,
+    deleteToDo
 }

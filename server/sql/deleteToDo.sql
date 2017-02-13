@@ -1,0 +1,3 @@
+DELETE FROM "ToDo" 
+WHERE "id" = ${toDoId} 
+RETURNING *
