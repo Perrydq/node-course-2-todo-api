@@ -108,11 +108,42 @@ const deleteToDo = (toDoId) => {
     });
 }
 
+const completeToDo = (toDoId) => {
+    return new Promise((resolve, reject) => {
+        db.oneOrNone(sql.completeToDo, {toDoId})
+        .then((todo) => {
+            pgp.end();
+            resolve(todo);
+        })
+        .catch((e) => {
+            pgp.end();
+            reject(e);
+        })
+    });
+}
+
+const updateToDo = (todo) => {
+    return new Promise((resolve, reject) => {
+        db.query(sql.updateToDo, todo)
+        .then((todo) => {
+            pgp.end();
+            resolve(todo[0]);
+        })
+        .catch(e => {
+            pgp.end();
+            console.log(e);
+            reject(e);
+        })
+    });
+}
+
 module.exports = {
     newToDo,
     getAllToDos,
     getToDoById,
     deleteAllToDos,
     insertArrayofToDo,
-    deleteToDo
+    deleteToDo, 
+    completeToDo,
+    updateToDo
 }

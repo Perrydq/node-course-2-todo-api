@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -68,6 +69,55 @@ app.delete('/todos/:id', (req, res) => {
         res.status(404).send('Invalid ID');
     }
 });
+
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['todo', 'completed']);
+    if(Number.isInteger(+id)){
+        //remove todo by ID
+        //success
+            //if no response data 404
+            //if response print todo
+        const updatedToDo = {
+                toDoText: body.todo,
+                toDoId: id
+            }
+        if(_.isBoolean(body.completed) && body.completed && body.todo){
+            //update todo text and set completed status to true
+            //send as object with properties toDoText and toDoId
+
+            toDo.updateToDo(updatedToDo)
+            .then(todo => {
+                toDo.completeToDo(id)
+                .then(todo => {
+                res.status(200).send(todo);
+                })
+                .catch(e => res.status(400).send(e));
+            })
+            .catch(e => res.status(400).send(e));
+        } else if(_.isBoolean(body.completed) && body.completed) {
+            //set completed status only
+            toDo.completeToDo(id)
+            .then(todo => {
+                res.status(200).send(todo);
+            })
+            .catch(e => res.status(400).send(e));
+        } else if(body.todo) {
+            //update todo text only
+            toDo.updateToDo(updatedToDo)
+            .then(todo => {
+                res.status(200).send(todo);
+            })
+            .catch(e => res.status(404).send(e));
+        } else {
+            res.status(404).send('No to do\'s updated');
+        }
+    } else {
+        res.status(404).send('Invalid ID');
+    }
+
+});
+
 
 // app.get('/deleteAllToDos', (req, res) => {
 //     toDo.deleteAllToDos()

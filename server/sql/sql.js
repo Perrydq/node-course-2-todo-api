@@ -22,6 +22,9 @@ module.exports.getAllToDos = sql('./getAllToDos.sql');
 module.exports.deleteAllToDos = sql('./deleteAllToDos.sql');
 module.exports.getToDoById = sql('./getToDoById.sql');
 module.exports.deleteToDo = sql('./deleteToDo.sql');
+module.exports.completeToDo = sql('./completeToDo.sql');
+module.exports.updateToDo = sql('./updateToDo.sql');
+
 
 module.exports.createUsersTable = sql('./createUserTable.sql');
 module.exports.newUser = sql('./newUser.sql');
