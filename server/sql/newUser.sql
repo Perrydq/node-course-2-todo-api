@@ -1,1 +1,1 @@
-INSERT INTO "Users" (email) VALUES (${email}) RETURNING *
+INSERT INTO "Users" (password, email) VALUES (${password}, REGEXP_REPLACE(${email}, '\s+', '')) RETURNING *

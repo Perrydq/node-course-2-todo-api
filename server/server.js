@@ -3,8 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const {db, pgp} = require('./db/postgres.js');
-const toDo = require('./models/todo.js');
-const user = require('./models/user.js');
+const _toDo = require('./models/todo.js');
+const _user = require('./models/user.js');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
     // console.log(req.body);
-    toDo.newToDo(req.body.todo)
+    _toDo.newToDo(req.body.todo)
     .then((data) => {
         res.status(200).send(data)
     })
@@ -23,7 +23,7 @@ app.post('/todos', (req, res) => {
 });
 
 app.get('/todos', (req, res) => {
-    toDo.getAllToDos()
+    _toDo.getAllToDos()
     .then(todos => {
         res.status(200).send({todos});
     })
@@ -36,7 +36,7 @@ app.get('/todos', (req, res) => {
 app.get('/todos/:id', (req, res) => {
     const id = req.params.id;
     if(Number.isInteger(+id)){
-        toDo.getToDoById(id)
+        _toDo.getToDoById(id)
         .then((todo) => {
             res.status(200).send(todo);
         })
@@ -58,7 +58,7 @@ app.delete('/todos/:id', (req, res) => {
         //success
             //if no response data 404
             //if response print todo
-        toDo.deleteToDo(id)
+        _toDo.deleteToDo(id)
         .then((todo) => {
             todo ? res.status(200).send(todo) : res.status(404).send('no todo to delete');
         })
@@ -84,11 +84,11 @@ app.patch('/todos/:id', (req, res) => {
             }
         if(_.isBoolean(body.completed) && body.completed && body.todo){
             //update todo text and set completed status to true
-            //send as object with properties toDoText and toDoId
+            //send as object with properties _toDoText and _toDoId
 
-            toDo.updateToDo(updatedToDo)
+            _toDo.updateToDo(updatedToDo)
             .then(todo => {
-                toDo.completeToDo(id)
+                _toDo.completeToDo(id)
                 .then(todo => {
                 res.status(200).send(todo);
                 })
@@ -97,14 +97,14 @@ app.patch('/todos/:id', (req, res) => {
             .catch(e => res.status(400).send(e));
         } else if(_.isBoolean(body.completed) && body.completed) {
             //set completed status only
-            toDo.completeToDo(id)
+            _toDo.completeToDo(id)
             .then(todo => {
                 res.status(200).send(todo);
             })
             .catch(e => res.status(400).send(e));
         } else if(body.todo) {
             //update todo text only
-            toDo.updateToDo(updatedToDo)
+            _toDo.updateToDo(updatedToDo)
             .then(todo => {
                 res.status(200).send(todo);
             })
@@ -118,9 +118,25 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
+app.post('/users', (req, res) => {
+    const newUser = {
+        email: req.body.user.email,
+        password: req.body.user.password
+    }
+    _user.addUser(newUser)
+    .then((createdUser) => {
+        res.header('x-auth', createdUser.tokens[0].token).send({
+            id: createdUser.id,
+            email: createdUser.email
+        });
+    })
+    .catch(e => {
+        res.status(400).send(e.message);
+    })
+})
 
 // app.get('/deleteAllToDos', (req, res) => {
-//     toDo.deleteAllToDos()
+//     _toDo.deleteAllToDos()
 //     .then(message => {
 //         res.status(200).send(message);
 //     })
@@ -137,7 +153,3 @@ app.listen(3000, () => {
 module.exports = {
     app
 }
-
-// toDo.newToDo('something new to do!');
-
-// user.addUser('shadow44@gmail.com');

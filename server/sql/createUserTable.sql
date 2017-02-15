@@ -1,4 +1,7 @@
 CREATE TABLE IF NOT EXISTS "Users"(
     id serial primary key,
-    email varchar(254) not null
+    email text not null,
+    password text not null,
+    tokens json [],
+    UNIQUE(email)
 );
