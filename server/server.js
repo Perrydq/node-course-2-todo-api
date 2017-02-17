@@ -118,20 +118,20 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
+app.get('/users/me', (req, res) => {
+    const token = req.header('x-auth');
+
+
+});
+
 app.post('/users', (req, res) => {
-    const newUser = {
-        email: req.body.user.email,
-        password: req.body.user.password
-    }
-    _user.addUser(newUser)
+    var newUser = new _user.UserSchema(_.pick(req.body.user, ['email', 'password']));
+    newUser.save()
     .then((createdUser) => {
-        res.header('x-auth', createdUser.tokens[0].token).send({
-            id: createdUser.id,
-            email: createdUser.email
-        });
+        res.header('x-auth', createdUser.tokens[0].token).send(newUser.toJSON());
     })
     .catch(e => {
-        res.status(400).send(e.message);
+        res.status(400).send(e);
     })
 })
 

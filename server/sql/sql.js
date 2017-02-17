@@ -28,6 +28,7 @@ module.exports.updateToDo = sql('./updateToDo.sql');
 
 module.exports.createUsersTable = sql('./createUserTable.sql');
 module.exports.newUser = sql('./newUser.sql');
+module.exports.newUserAuthToken = sql('./newUserAuthToken.sql');
 
 
     // example external queries for Users:
