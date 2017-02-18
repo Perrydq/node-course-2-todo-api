@@ -2,26 +2,13 @@ const {db, pgp} = require('../db/postgres.js');
 const sql = require('../sql/sql.js');
 
 const newToDo = (todo) => {
-    return new Promise((resolve, reject) => {
-        db.tx((t) => {
-        return t.batch([
-            t.query(sql.createToDoTable),
-            t.query(sql.newToDo, {todoText: todo})
-        ]);
-    }).then(data => {
-        pgp.end();
-        resolve({
-            id: data[1][0].id,
-            todo: data[1][0].todo,
-            completed: data[1][0].completed,
-            completedat: data[1][0].completedat
-        });
-    })
-    .catch((e) => {
-        pgp.end();
-        reject(e) 
+        return db.tx((t) => {
+            return t.batch([
+                t.query(sql.createToDoTable),
+                t.query(sql.newToDo, {todoText: todo})
+            ]);
+        }).then(data => data[1])
     });
-});
 };
 
 const insertArrayofToDo = (todos) => {
@@ -33,7 +20,6 @@ const insertArrayofToDo = (todos) => {
             });
             return t.batch(batch);
         }).then((data => {
-            pgp.end();
             let newtodos = [];
             data[1].forEach(todo => {
                 newtodos.push({
@@ -46,7 +32,6 @@ const insertArrayofToDo = (todos) => {
             resolve({newtodos});
         }))
         .catch(e => {
-            pgp.end();
             reject(e);
         });
     });
