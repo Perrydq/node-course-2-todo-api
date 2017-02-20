@@ -137,6 +137,17 @@ const updateToDo = (todo) => {
     });
 }
 
+const init = () => {
+    return new Promise((resolve, reject) => {
+        db.query(sql.createToDoTable).then(()=> {
+            pgp.end();
+            resolve('ToDo Database initialized or already present');
+        }).catch(e => {
+            reject(e);
+        })
+    })
+}
+
 module.exports = {
     newToDo,
     getAllToDos,
@@ -145,5 +156,6 @@ module.exports = {
     insertArrayofToDo,
     deleteToDo, 
     completeToDo,
-    updateToDo
+    updateToDo,
+    init
 }

@@ -10,8 +10,9 @@ class UserSchema {
             //this = user
                 this.email = user.email;
                 this.password = user.password;
-                this.tokens = [];
-            }
+                user.tokens ? this.tokens = user.tokens : this.tokens = [];
+                user.id ? this.id = user.id : this.id = undefined;
+            };
 
     save() { //save new user to database returning full user object
         //this = user
@@ -28,7 +29,9 @@ class UserSchema {
                     return t.query(sql.newUser, {email: this.email, password: this.password})
                             .then((newUser) => {
                                 this.id = newUser[0].id;
-                                t.query(sql.newUserAuthToken, {tokens: this.generateAuthToken(), id: this.id})
+                                this.generateAuthToken();
+                                console.log(this);
+                                t.query(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
                                     .then((newUser) => {
                                         pgp.end();
                                         this.tokens = newUser[0].tokens;
@@ -37,11 +40,11 @@ class UserSchema {
                             });
                 }).catch(e => reject(e));
         });
-    }
+    };
 
     generateAuthToken() { //this = user
-        var access = 'auth';
-        var token = jwt.sign({id: this.id, access}, 'abc123').toString();
+        let access = 'auth';
+        let token = jwt.sign({id: this.id, access}, 'abc123').toString();
         this.tokens.push({access, token});
         return this.tokens;
     };
@@ -49,10 +52,42 @@ class UserSchema {
     toJSON() {
         // this = user
         return _.pick(this, ['id', 'email']);
-    }
+    };
 
+
+};
+
+const init = () => {
+    return new Promise((resolve, reject) => {
+        db.query(sql.createUsersTable).then(() => {
+            pgp.end();
+            resolve('User Table Initialized or already present');
+        }).catch(e => {
+            reject(e);
+        })
+    });
 }
 
+const findByAuthToken = (token) => {
+    return new Promise((resolve, reject) => {
+        let decoded;
+        try{
+            decoded = jwt.verify(token, 'abc123');
+        } catch (e){
+            reject(e);
+        }
+        db.oneOrNone(sql.findUserWithAuthToken, {token: token, id: decoded.id})
+            .then((user) => {
+                pgp.end();
+                user ? resolve(new UserSchema(user)) : resolve(null);
+            }).catch(e => {
+                reject(e);
+        });
+    })
+};
+
 module.exports = {
-    UserSchema
+    UserSchema,
+    init,
+    findByAuthToken
 }

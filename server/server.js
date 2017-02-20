@@ -5,9 +5,23 @@ const bodyParser = require('body-parser');
 const {db, pgp} = require('./db/postgres.js');
 const _toDo = require('./models/todo.js');
 const _user = require('./models/user.js');
+const {authenticate} = require('./middleware/authenticate');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+_user.init().then((message) => {
+    console.log(message);
+    _toDo.init()
+    .then((message) => {
+        console.log(message);
+    })
+    .catch(e => {
+        console.log(e);
+        die();
+    })
+});
+
 
 app.use(bodyParser.json());
 
@@ -118,10 +132,8 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
-app.get('/users/me', (req, res) => {
-    const token = req.header('x-auth');
-
-
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
 });
 
 app.post('/users', (req, res) => {
@@ -132,8 +144,8 @@ app.post('/users', (req, res) => {
     })
     .catch(e => {
         res.status(400).send(e);
-    })
-})
+    });
+});
 
 // app.get('/deleteAllToDos', (req, res) => {
 //     _toDo.deleteAllToDos()

@@ -1,4 +1,4 @@
 UPDATE "Users" 
-SET "tokens" = ${tokens}::json[]
+SET "tokens" = ${tokens}::jsonb
 WHERE "id" = ${id} 
 RETURNING *
