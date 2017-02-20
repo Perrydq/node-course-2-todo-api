@@ -3,6 +3,8 @@ const sql = require('../sql/sql.js');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
+
 
 class UserSchema {
 
@@ -16,29 +18,34 @@ class UserSchema {
 
     save() { //save new user to database returning full user object
         //this = user
+
+        // if password is modified
+        //hash the funcion
+
         return new Promise((resolve, reject) => {
             //validate email
             if(!validator.isEmail(this.email)){
                 reject('invalid email');
             }
             //validate password
-            if(!true){
-                reject('invalid password');
-            }         
-            db.tx(t => {
-                    return t.query(sql.newUser, {email: this.email, password: this.password})
-                            .then((newUser) => {
-                                this.id = newUser[0].id;
-                                this.generateAuthToken();
-                                console.log(this);
-                                t.query(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
+            if(true){
+                this.generatePasswordHash()
+                    .then(() => {
+                        db.tx(t => {
+                            return t.query(sql.newUser, {email: this.email, password: this.password})
                                     .then((newUser) => {
-                                        pgp.end();
-                                        this.tokens = newUser[0].tokens;
-                                        resolve(this);
-                                    }).catch(e => reject(e));
-                            });
-                }).catch(e => reject(e));
+                                        this.id = newUser[0].id;
+                                        this.generateAuthToken();
+                                        t.query(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
+                                            .then((newUser) => {
+                                                pgp.end();
+                                                this.tokens = newUser[0].tokens;
+                                                resolve(this);
+                                            }).catch(e => reject(e));
+                                    });
+                        }).catch(e => reject(e));
+                    });
+            }
         });
     };
 
@@ -54,8 +61,23 @@ class UserSchema {
         return _.pick(this, ['id', 'email']);
     };
 
+    generatePasswordHash() {
+        return new Promise((resolve, reject) => {
+            bcrypt.genSalt(10, (err, salt) => {
+                if(err) reject('error occured generating secure salt');
+                bcrypt.hash(this.password, salt, (err, hash) => {
+                    if(err) reject('error occured generating secure hash') ;
+                    this.password = hash;
+                    resolve(this);
+                    });
+                });      
+        });
+  
+    };
 
 };
+
+
 
 const init = () => {
     return new Promise((resolve, reject) => {
