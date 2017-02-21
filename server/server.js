@@ -166,11 +166,15 @@ app.post('/users/login', (req, res) => {
                 default: console.log(e);
                          res.status(400).send();
             }
-        })
-    //send email and password
-    //compare password hash to hash in database
-    //if match send back x-auth header and user in body of response
-    
+        })  
+});
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send();
+    }, () => {
+        res.status(400).send();
+    });
 });
 
 // app.get('/deleteAllToDos', (req, res) => {

@@ -36,10 +36,10 @@ class UserSchema {
                                     .then((newUser) => {
                                         this.id = newUser.id;
                                         this.generateAuthToken();
-                                        t.query(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
+                                        t.one(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
                                             .then((newUser) => {
                                                 pgp.end();
-                                                this.tokens = newUser[0].tokens;
+                                                this.tokens = newUser.tokens;
                                                 resolve(this);
                                             }).catch(e => reject(e));
                                     });
@@ -76,11 +76,27 @@ class UserSchema {
     };
 
     getAuthToken() {
+        if(this.tokens.length){
             const authToken = this.tokens.find(token => token.access === 'auth');
             return authToken.token;
-    }
+        }
+        return undefined;
+    };
 
-};
+    removeToken(token) {
+        return new Promise((resolve, reject) => {
+            //remove this.tokens where array member value of token === token
+            var indexOfToken = this.tokens.indexOf(this.tokens.find(_token => _token.token === token));
+            this.tokens.splice(indexOfToken, 1);
+            db.one(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
+                .then((user) => {
+                    pgp.end();
+                    return resolve(user);
+                }).catch(e => reject(e));
+            });
+    };
+
+}
 
 const init = () => {
     return new Promise((resolve, reject) => {
@@ -113,25 +129,32 @@ const findByAuthToken = (token) => {
 
 const findByEmail = (loginData) => {
     return new Promise((resolve, reject) => {
-        //get password hash from database where email 
-        db.oneOrNone(sql.findUserWithEmail, {email: loginData.email})
-            .then((user) => {
-                if(!user) return reject('No User Found');
-                //compare password hash to hash from database
-                bcrypt.compare(loginData.password, user.password)
+        //get password hash from database where email      
+            db.oneOrNone(sql.findUserWithEmail, {email: loginData.email})
+                .then((user) => {
+                    if(!user) return reject('No User Found');
+                    //compare password hash to hash from database
+                    bcrypt.compare(loginData.password, user.password)
                     .then((match) => {
-                        if(match){
-                           resolve(user);
-                        } else {
-                            reject('Incorrect Password');
+                        if(!match) return reject('Incorrect Password');
+                        user = new UserSchema(user);
+                        //check if token exists //if exists resolve
+                        if(user.getAuthToken()) {
+                            return resolve(user);
+                        } else {//if not
+                            //create new auth token
+                            user.generateAuthToken();
+                            //update database
+                            db.one(sql.newUserAuthToken, {tokens: JSON.stringify(user.tokens), id: user.id})
+                            .then((user) => {
+                                pgp.end();
+                                return resolve(user);
+                            })
                         }
                     })
-            }).catch( e => console.log(e));
-        
-        //if they're the same respond with user
-        //if they don't match reject Promise
-    })
-}
+            })
+        }).catch( e => console.log(e));
+};
 
 const deleteAllUsers = () => {
     return new Promise((resolve, reject) => {
