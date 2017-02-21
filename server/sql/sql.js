@@ -15,7 +15,6 @@ function sql(file) {
     return new QueryFile(fullPath, {minify: true});
 }
 
-
 module.exports.createToDoTable = sql('./createToDoTable.sql');
 module.exports.newToDo = sql('./newToDo.sql');
 module.exports.getAllToDos = sql('./getAllToDos.sql');
@@ -30,7 +29,8 @@ module.exports.createUsersTable = sql('./createUserTable.sql');
 module.exports.newUser = sql('./newUser.sql');
 module.exports.newUserAuthToken = sql('./newUserAuthToken.sql');
 module.exports.findUserWithAuthToken = sql('./findUserWithAuthToken.sql');
-
+module.exports.deleteAllUsers = sql('./deleteAllUsers.sql');
+module.exports.findUserWithEmail = sql('./findUserWithEmail.sql');
 
     // example external queries for Users:
 //     users: {

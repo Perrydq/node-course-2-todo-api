@@ -1,25 +1,16 @@
 const expect = require('expect');
 const request = require('supertest');
 
+
 const {app} = require('./../server/server.js');
 const toDo = require('./../server/models/todo.js');
-
-const todos = [
-    {todo: 'first test todo'},
-    {todo: 'second test todo'}
-];
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
 
 
 describe('POST /todos', () => {
-    beforeEach((done) => {
-        toDo.deleteToDos()
-        .then(() => {
-            toDo.insertArrayofToDo(todos);
-        })
-        .then(() => done())
-        .catch(e => done(e));
-    });
+    before(populateUsers);
+    before(populateTodos);
     it('should create a new todo', (done)=>{
         const text = 'Test todo text';
 
@@ -52,7 +43,7 @@ describe('POST /todos', () => {
                     return done(err);
                 }
                 toDo.getAllToDos().then((todos) => {
-                    expect(todos.length).toBe(2);
+                    expect(todos.length).toBe(3);
                     done();
                 }).catch(e => done(e));
             });
@@ -64,13 +55,12 @@ describe('GET /todos', () => {
             .get('/todos')
             .expect(200)
             .expect((res) => {
-                expect(res.body.todos.length).toBe(2);
+                expect(res.body.todos.length).toBe(3);
             })
             .end(done);
     });
-    it()
 });
-    //doesn't work as I use serial ID's not insertable objectID's via mongoDB
+
 describe('GET /todos/:id', () => {
     it('should return todo object', (done) => {
         request(app)
@@ -82,8 +72,8 @@ describe('GET /todos/:id', () => {
     });
 
     it('should return a 404 if todo not found', (done)=> {
-        requeset(app)
-        .get(`/todos/478923674806723`)
+        request(app)
+        .get(`/todos/4023`)
         .expect(404)
         .end(done);
     });
@@ -94,4 +84,16 @@ describe('GET /todos/:id', () => {
         .expect(404)
         .end(done);
     })
+});
+
+describe('GET /users/me', () => {
+    it('should return user if authenticated', (done) => {
+        // request(app)
+        //     .get('/users/me')
+        //     .set('x-auth')
+    });
+
+    it('should return a 401 if not authenticated', (done) => {
+
+    });
 });

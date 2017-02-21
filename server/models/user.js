@@ -16,7 +16,7 @@ class UserSchema {
                 user.id ? this.id = user.id : this.id = undefined;
             };
 
-    save() { //save new user to database returning full user object
+    saveNew() { //save new user to database returning full user object
         //this = user
 
         // if password is modified
@@ -32,9 +32,9 @@ class UserSchema {
                 this.generatePasswordHash()
                     .then(() => {
                         db.tx(t => {
-                            return t.query(sql.newUser, {email: this.email, password: this.password})
+                            return t.one(sql.newUser, {email: this.email, password: this.password})
                                     .then((newUser) => {
-                                        this.id = newUser[0].id;
+                                        this.id = newUser.id;
                                         this.generateAuthToken();
                                         t.query(sql.newUserAuthToken, {tokens: JSON.stringify(this.tokens), id: this.id})
                                             .then((newUser) => {
@@ -75,9 +75,12 @@ class UserSchema {
   
     };
 
+    getAuthToken() {
+            const authToken = this.tokens.find(token => token.access === 'auth');
+            return authToken.token;
+    }
+
 };
-
-
 
 const init = () => {
     return new Promise((resolve, reject) => {
@@ -108,8 +111,43 @@ const findByAuthToken = (token) => {
     })
 };
 
+const findByEmail = (loginData) => {
+    return new Promise((resolve, reject) => {
+        //get password hash from database where email 
+        db.oneOrNone(sql.findUserWithEmail, {email: loginData.email})
+            .then((user) => {
+                if(!user) return reject('No User Found');
+                //compare password hash to hash from database
+                bcrypt.compare(loginData.password, user.password)
+                    .then((match) => {
+                        if(match){
+                           resolve(user);
+                        } else {
+                            reject('Incorrect Password');
+                        }
+                    })
+            }).catch( e => console.log(e));
+        
+        //if they're the same respond with user
+        //if they don't match reject Promise
+    })
+}
+
+const deleteAllUsers = () => {
+    return new Promise((resolve, reject) => {
+        db.none(sql.deleteAllUsers).then(() => {
+            resolve();
+        })
+        .catch(e => {
+            reject(e);
+        });
+    });
+};
+
 module.exports = {
     UserSchema,
     init,
-    findByAuthToken
+    findByAuthToken,
+    deleteAllUsers,
+    findByEmail
 }

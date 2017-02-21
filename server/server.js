@@ -52,6 +52,7 @@ app.get('/todos/:id', (req, res) => {
     if(Number.isInteger(+id)){
         _toDo.getToDoById(id)
         .then((todo) => {
+            if(!todo) res.status(404).send('To Do Not Found'); // if null reject
             res.status(200).send(todo);
         })
         .catch((err) => {
@@ -138,13 +139,38 @@ app.get('/users/me', authenticate, (req, res) => {
 
 app.post('/users', (req, res) => {
     var newUser = new _user.UserSchema(_.pick(req.body.user, ['email', 'password']));
-    newUser.save()
+    newUser.saveNew()
     .then((createdUser) => {
-        res.header('x-auth', createdUser.tokens[0].token).send(newUser.toJSON());
+        res.status(200)
+        .header('x-auth', createdUser.getAuthToken())
+        .send(newUser.toJSON());
     })
     .catch(e => {
         res.status(400).send(e);
     });
+});
+
+app.post('/users/login', (req, res) => {
+    _user.findByEmail(_.pick(req.body.user, ['email', 'password']))
+        .then((user) => {
+            user = new _user.UserSchema(user);
+            res.status(200)
+            .header('x-auth', user.getAuthToken())
+            .send(user.toJSON());
+        }).catch(e => {
+            switch(e){
+                case 'Incorrect Password': res.status(401).send(e);
+                    break;
+                case 'No User Found': res.status(401).send(e);
+                    break;
+                default: console.log(e);
+                         res.status(400).send();
+            }
+        })
+    //send email and password
+    //compare password hash to hash in database
+    //if match send back x-auth header and user in body of response
+    
 });
 
 // app.get('/deleteAllToDos', (req, res) => {
@@ -160,7 +186,6 @@ app.post('/users', (req, res) => {
 app.listen(3000, () => {
     console.log(`Started on port ${port}`);
 });
-
 
 module.exports = {
     app

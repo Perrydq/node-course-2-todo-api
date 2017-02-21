@@ -82,7 +82,7 @@ const getToDoById = (toDoId) => {
 
 const deleteAllToDos = () => {
     return new Promise((resolve, reject) => {
-        db.none(sql.deleteToDos)
+        db.none(sql.deleteAllToDos)
         .then(() => {
             pgp.end();
             resolve('ToDos Deleted');
