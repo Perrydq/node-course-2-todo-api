@@ -18,16 +18,16 @@ _user.init().then((message) => {
     })
     .catch(e => {
         console.log(e);
-        die();
+        process.exit();
     })
 });
 
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     // console.log(req.body);
-    _toDo.newToDo(req.body.todo)
+    _toDo.newToDo(req.body.todo, req.user)
     .then((data) => {
         res.status(200).send(data)
     })
@@ -36,8 +36,8 @@ app.post('/todos', (req, res) => {
     })
 });
 
-app.get('/todos', (req, res) => {
-    _toDo.getAllToDos()
+app.get('/todos', authenticate, (req, res) => {
+    _toDo.getAllToDos(req.user)
     .then(todos => {
         res.status(200).send({todos});
     })
@@ -47,10 +47,10 @@ app.get('/todos', (req, res) => {
 });
 
 // GET /todos/:id
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     const id = req.params.id;
     if(Number.isInteger(+id)){
-        _toDo.getToDoById(id)
+        _toDo.getToDoById(id, req.user)
         .then((todo) => {
             if(!todo) res.status(404).send('To Do Not Found'); // if null reject
             res.status(200).send(todo);
@@ -64,7 +64,7 @@ app.get('/todos/:id', (req, res) => {
     }
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     //get id/
     const id = req.params.id;
     //validata id if not valid return 404
@@ -73,7 +73,7 @@ app.delete('/todos/:id', (req, res) => {
         //success
             //if no response data 404
             //if response print todo
-        _toDo.deleteToDo(id)
+        _toDo.deleteToDo(id, req.user)
         .then((todo) => {
             todo ? res.status(200).send(todo) : res.status(404).send('no todo to delete');
         })
@@ -85,7 +85,7 @@ app.delete('/todos/:id', (req, res) => {
     }
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     var body = _.pick(req.body, ['todo', 'completed']);
     if(Number.isInteger(+id)){
@@ -95,15 +95,15 @@ app.patch('/todos/:id', (req, res) => {
             //if response print todo
         const updatedToDo = {
                 toDoText: body.todo,
-                toDoId: id
+                toDoId: id,
             }
         if(_.isBoolean(body.completed) && body.completed && body.todo){
             //update todo text and set completed status to true
             //send as object with properties _toDoText and _toDoId
 
-            _toDo.updateToDo(updatedToDo)
+            _toDo.updateToDo(updatedToDo, req.user)
             .then(todo => {
-                _toDo.completeToDo(id)
+                _toDo.completeToDo(id, req.user)
                 .then(todo => {
                 res.status(200).send(todo);
                 })
@@ -112,14 +112,14 @@ app.patch('/todos/:id', (req, res) => {
             .catch(e => res.status(400).send(e));
         } else if(_.isBoolean(body.completed) && body.completed) {
             //set completed status only
-            _toDo.completeToDo(id)
+            _toDo.completeToDo(id, req.user)
             .then(todo => {
                 res.status(200).send(todo);
             })
             .catch(e => res.status(400).send(e));
         } else if(body.todo) {
             //update todo text only
-            _toDo.updateToDo(updatedToDo)
+            _toDo.updateToDo(updatedToDo, req.user)
             .then(todo => {
                 res.status(200).send(todo);
             })

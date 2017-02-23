@@ -1,1 +1,1 @@
-INSERT INTO "ToDo" (todo) VALUES (${todoText}) RETURNING *
+INSERT INTO "ToDo" (todo, creator) VALUES (${todoText}, ${creator}) RETURNING *

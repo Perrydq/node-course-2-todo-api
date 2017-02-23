@@ -1,20 +1,17 @@
 const {db, pgp} = require('../db/postgres.js');
 const sql = require('../sql/sql.js');
 
-const newToDo = (todo) => {
+const newToDo = (todo, user) => {
     return new Promise((resolve, reject) => {
-        db.tx((t) => {
-        return t.batch([
-            t.query(sql.createToDoTable),
-            t.query(sql.newToDo, {todoText: todo})
-        ]);
-    }).then(data => {
+        db.one(sql.newToDo, {todoText: todo, creator: user.id})
+        .then(data => {
         pgp.end();
         resolve({
-            id: data[1][0].id,
-            todo: data[1][0].todo,
-            completed: data[1][0].completed,
-            completedat: data[1][0].completedat
+            id: data.id,
+            todo: data.todo,
+            completed: data.completed,
+            completedat: data.completedat,
+            creator: data.creator
         });
     })
     .catch((e) => {
@@ -40,7 +37,8 @@ const insertArrayofToDo = (todos) => {
                     id: todo.id,
                     todo: todo.todo,
                     completed: todo.completed,
-                    completedat: todo.completedat
+                    completedat: todo.completedat,
+                    creator: data.creator
                 });
             });
             resolve({newtodos});
@@ -52,9 +50,9 @@ const insertArrayofToDo = (todos) => {
     });
 }
 
-const getAllToDos = () => {
+const getAllToDos = (user) => {
     return new Promise((resolve, reject) => {
-        db.manyOrNone(sql.getAllToDos)
+        db.manyOrNone(sql.getAllToDos, {creator: user.id})
         .then(todos => {
             pgp.end();
             resolve(todos); //array of ToDo objects
@@ -66,9 +64,9 @@ const getAllToDos = () => {
     });
 };
 
-const getToDoById = (toDoId) => {
+const getToDoById = (toDoId, user) => {
     return new Promise((resolve, reject) => {
-        db.oneOrNone(sql.getToDoById, {toDoId})
+        db.oneOrNone(sql.getToDoById, {toDoId, creator: user.id})
         .then(todo => {
             pgp.end();
             resolve(todo);
@@ -94,9 +92,9 @@ const deleteAllToDos = () => {
     });
 };
 
-const deleteToDo = (toDoId) => {
+const deleteToDo = (toDoId, user) => {
     return new Promise((resolve, reject) => {
-        db.oneOrNone(sql.deleteToDo, {toDoId})
+        db.oneOrNone(sql.deleteToDo, {toDoId, creator: user.id})
         .then((data) => {
             pgp.end();
             resolve(data);
@@ -108,9 +106,9 @@ const deleteToDo = (toDoId) => {
     });
 }
 
-const completeToDo = (toDoId) => {
+const completeToDo = (toDoId, user) => {
     return new Promise((resolve, reject) => {
-        db.oneOrNone(sql.completeToDo, {toDoId})
+        db.oneOrNone(sql.completeToDo, {toDoId: toDoId, creator: user.id})
         .then((todo) => {
             pgp.end();
             resolve(todo);
@@ -122,9 +120,9 @@ const completeToDo = (toDoId) => {
     });
 }
 
-const updateToDo = (todo) => {
+const updateToDo = (todo, user) => {
     return new Promise((resolve, reject) => {
-        db.query(sql.updateToDo, todo)
+        db.query(sql.updateToDo, {toDoText: todo.toDoText, toDoId: todo.toDoId, creator: user.id})
         .then((todo) => {
             pgp.end();
             resolve(todo[0]);

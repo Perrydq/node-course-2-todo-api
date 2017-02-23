@@ -1,3 +1,4 @@
 DELETE FROM "ToDo" 
-WHERE "id" = ${toDoId} 
+WHERE "id" = ${toDoId}
+AND creator = ${creator}
 RETURNING *
